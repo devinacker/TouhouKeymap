@@ -215,6 +215,9 @@ static INT_PTR CALLBACK ConfigDialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LP
 		}
 		else if (wParam == IDCANCEL)
 		{
+			// reload previous settings and exit
+			KeySettings::load();
+
 			EndDialog(hwnd, 0);
 			return TRUE;
 		}
