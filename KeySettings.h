@@ -24,11 +24,10 @@ public:
 	const std::string& keyName() const { return _name; }
 	std::string keyBinding() const;
 
+	static UINT scanCode(BYTE vKey);
+	static void updateDIKeys(const BYTE *scanCodeToDIKey);
+
 private:
-	void updateDIKeys();
-
-	static BYTE vKeyToDIKey[256];
-
 	std::string _name;
 
 	BYTE _vKeyUnmapped, _diKeyUnmapped;

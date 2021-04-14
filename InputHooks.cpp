@@ -11,6 +11,7 @@ static auto chain_GetKeyboardState = GetKeyboardState;
 static auto chain_DirectInput8Create = DirectInput8Create;
 static HRESULT(WINAPI *chain_CreateDevice)(IDirectInput8A*, REFGUID, LPDIRECTINPUTDEVICEA *, LPUNKNOWN);
 static HRESULT(WINAPI *chain_GetDeviceState)(IDirectInputDevice8A*, DWORD, LPVOID);
+static HRESULT(WINAPI *chain_SetDataFormat)(IDirectInputDevice8A*, LPCDIDATAFORMAT);
 
 // ----------------------------------------------------------------------------
 // Keyboard input hook (non-DirectInput version)
@@ -69,6 +70,41 @@ static HRESULT WINAPI GetDeviceStateHook(IDirectInputDevice8A *self, DWORD cbDat
 }
 
 // ----------------------------------------------------------------------------
+// Map DirectInput keys to Windows virtual keys after opening the keyboard
+static HRESULT WINAPI SetDataFormatHook(IDirectInputDevice8A* self, LPCDIDATAFORMAT lpdf)
+{
+	HRESULT result = chain_SetDataFormat(self, lpdf);
+	if (result == DI_OK)
+	{
+		BYTE scanCodeToDIKey[512] = { 0 };
+
+		DIPROPDWORD dip;
+		dip.diph.dwSize = sizeof(dip);
+		dip.diph.dwHeaderSize = sizeof(dip.diph);
+		dip.diph.dwHow = DIPH_BYOFFSET;
+		for (int i = 0; i < 256; i++)
+		{
+			dip.diph.dwObj = i;
+			if (self->GetProperty(DIPROP_SCANCODE, &dip.diph) != DI_OK)
+				continue;
+
+			UINT scanCode = (BYTE)dip.dwData;
+
+			if (scanCode == 0xe0)
+				scanCode = (BYTE)(dip.dwData >> 8) | KF_EXTENDED;
+			else if (scanCode == 0xe1)
+				scanCode = (BYTE)(dip.dwData >> 16) | KF_EXTENDED; // ?
+
+			scanCodeToDIKey[scanCode] = i;
+		}
+
+		KeySetting::updateDIKeys(scanCodeToDIKey);
+	}
+
+	return result;
+}
+
+// ----------------------------------------------------------------------------
 static HRESULT WINAPI CreateDeviceHook(IDirectInput8A* self, REFGUID rguid, LPDIRECTINPUTDEVICEA *lplpDirectInputDevice, LPUNKNOWN punkOuter)
 {
 	HRESULT result = chain_CreateDevice(self, rguid, lplpDirectInputDevice, punkOuter);
@@ -79,6 +115,9 @@ static HRESULT WINAPI CreateDeviceHook(IDirectInput8A* self, REFGUID rguid, LPDI
 
 		*(void**)&chain_GetDeviceState = vtable[9];
 		vtable[9] = GetDeviceStateHook;
+
+		*(void**)&chain_SetDataFormat = vtable[11];
+		vtable[11] = SetDataFormatHook;
 	}
 
 	return result;
