@@ -63,7 +63,7 @@ void KeySettings::registerKeys()
 	case TouhouKeymap::TH13:
 		key("Trance", 'C');
 		break;
-	case TouhouKeymap::TH15:
+	case TouhouKeymap::TH16:
 		key("Release", 'C');
 		break;
 	case TouhouKeymap::TH18:
