@@ -113,11 +113,16 @@ static HRESULT WINAPI CreateDeviceHook(IDirectInput8A* self, REFGUID rguid, LPDI
 		auto iface = (void***)*lplpDirectInputDevice;
 		auto vtable = *iface;
 
+		DWORD oldProtect;
+		VirtualProtect(vtable + 9, 3 * sizeof(void*), PAGE_READWRITE, &oldProtect);
+
 		*(void**)&chain_GetDeviceState = vtable[9];
 		vtable[9] = GetDeviceStateHook;
 
 		*(void**)&chain_SetDataFormat = vtable[11];
 		vtable[11] = SetDataFormatHook;
+
+		VirtualProtect(vtable + 9, 3 * sizeof(void*), oldProtect, &oldProtect);
 	}
 
 	return result;
@@ -131,9 +136,14 @@ static HRESULT WINAPI DirectInput8CreateHook(HINSTANCE hinst, DWORD dwVersion, R
 	{
 		auto iface = (void***)*ppvOut;
 		auto vtable = *iface;
+		
+		DWORD oldProtect;
+		VirtualProtect(vtable + 3, sizeof(void*), PAGE_READWRITE, &oldProtect);
 
 		*(void**)&chain_CreateDevice = vtable[3];
 		vtable[3] = CreateDeviceHook;
+		
+		VirtualProtect(vtable + 3, sizeof(void*), oldProtect, &oldProtect);
 	}
 
 	return result;
