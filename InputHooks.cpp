@@ -45,12 +45,12 @@ static HRESULT WINAPI GetDeviceStateHook(IDirectInputDevice8A *self, DWORD cbDat
 {
 	BYTE unmappedKeys[256];
 	
-	if (!KeySettings::enabled)
+	if (!KeySettings::enabled || cbData != 256)
 	{
 		return chain_GetDeviceState(self, cbData, lpvData);
 	}
 
-	HRESULT result = chain_GetDeviceState(self, cbData, unmappedKeys);
+	HRESULT result = chain_GetDeviceState(self, sizeof(unmappedKeys), unmappedKeys);
 	if (result == DI_OK)
 	{
 		auto lpKeyState = (BYTE*)lpvData;
@@ -74,7 +74,7 @@ static HRESULT WINAPI GetDeviceStateHook(IDirectInputDevice8A *self, DWORD cbDat
 static HRESULT WINAPI SetDataFormatHook(IDirectInputDevice8A* self, LPCDIDATAFORMAT lpdf)
 {
 	HRESULT result = chain_SetDataFormat(self, lpdf);
-	if (result == DI_OK)
+	if (result == DI_OK && lpdf->dwDataSize == 256)
 	{
 		BYTE scanCodeToDIKey[512] = { 0 };
 
