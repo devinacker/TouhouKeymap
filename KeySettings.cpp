@@ -91,10 +91,10 @@ void KeySettings::registerKeys()
 	switch (game)
 	{
 	default:
-		if (game != TouhouKeymap::TH18)
+		if (game < TouhouKeymap::TH18)
 			key("Quit (when paused)", 'Q');
 		if (game >= TouhouKeymap::TH07 && game != TouhouKeymap::TH09 && game != TouhouKeymap::TH17)
-			key("Restart (when paused)", 'R');
+			key("Restart (when paused)", 'R', VK_END);
 		break;
 
 	case TouhouKeymap::TH095:
