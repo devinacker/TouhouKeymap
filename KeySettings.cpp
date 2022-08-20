@@ -46,6 +46,10 @@ void KeySettings::registerKeys()
 		key("Photo", 'X');
 		key("Focus", VK_SHIFT);
 		break;
+	case TouhouKeymap::TH185:
+		key("Shot", 'Z');
+		key("Magic Circle", 'X');
+		key("Focus", VK_SHIFT);
 	}
 
 	// additional buttons
@@ -67,6 +71,7 @@ void KeySettings::registerKeys()
 		key("Release", 'C');
 		break;
 	case TouhouKeymap::TH18:
+	case TouhouKeymap::TH185:
 		key("Item", 'C');
 		key("Switch Item", 'D');
 		break;
