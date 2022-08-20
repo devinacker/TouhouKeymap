@@ -61,7 +61,7 @@ namespace TouhouKeymap
 		{"th17_custom",    TH17},
 		{"th18",           TH18},
 		{"th18_custom",    TH18},
-		{"th185",		   TH185},
+		{"th185",          TH185},
 		{"th185_custom",   TH185},
 
 		{"th105",          Unsupported},
