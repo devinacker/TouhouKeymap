@@ -9,6 +9,7 @@
 
 // from user32.dll
 static auto chain_CreateDialogParamA = CreateDialogParamA;
+static auto chain_CreateDialogParamW = CreateDialogParamW;
 static auto chain_DialogBoxParamA = DialogBoxParamA;
 static DLGPROC chain_DialogProc;
 static WNDPROC chain_TextBoxWindowProc;
@@ -284,10 +285,17 @@ static INT_PTR CALLBACK DialogProcHook(HWND hwnd, UINT uMsg, WPARAM wParam, LPAR
 }
 
 // ----------------------------------------------------------------------------
-static HWND WINAPI CreateDialogParamHook(HINSTANCE hInstance, LPCSTR lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc, LPARAM dwInitParam)
+static HWND WINAPI CreateDialogParamHookA(HINSTANCE hInstance, LPCSTR lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc, LPARAM dwInitParam)
 {
 	chain_DialogProc = lpDialogFunc;
 	return chain_CreateDialogParamA(hInstance, lpTemplateName, hWndParent, DialogProcHook, dwInitParam);
+}
+
+// ----------------------------------------------------------------------------
+static HWND WINAPI CreateDialogParamHookW(HINSTANCE hInstance, LPCWSTR lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc, LPARAM dwInitParam)
+{
+	chain_DialogProc = lpDialogFunc;
+	return chain_CreateDialogParamW(hInstance, lpTemplateName, hWndParent, DialogProcHook, dwInitParam);
 }
 
 // ----------------------------------------------------------------------------
@@ -301,7 +309,8 @@ static INT_PTR WINAPI DialogBoxParamHook(HINSTANCE hInstance, LPCSTR lpTemplateN
 void ConfigDialog::Init()
 {
 	detour_chain("user32.dll", 1,
-		"CreateDialogParamA", CreateDialogParamHook, &chain_CreateDialogParamA,
+		"CreateDialogParamA", CreateDialogParamHookA, &chain_CreateDialogParamA,
+		"CreateDialogParamW", CreateDialogParamHookW, &chain_CreateDialogParamW,
 		"DialogBoxParamA", DialogBoxParamHook, &chain_DialogBoxParamA,
 		NULL);
 }

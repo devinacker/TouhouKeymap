@@ -50,6 +50,13 @@ void KeySettings::registerKeys()
 		key("Shot", 'Z');
 		key("Magic Circle", 'X');
 		key("Focus", VK_SHIFT);
+		break;
+	case TouhouKeymap::TH19:
+		key("Shot", 'Z');
+		key("Charge", 'X');
+		key("Bomb", 'C');
+		key("Focus", VK_SHIFT);
+		break;
 	}
 
 	// additional buttons
@@ -98,7 +105,8 @@ void KeySettings::registerKeys()
 	default:
 		if (game < TouhouKeymap::TH18)
 			key("Quit (when paused)", 'Q');
-		if (game >= TouhouKeymap::TH07 && game != TouhouKeymap::TH09 && game != TouhouKeymap::TH17)
+		if (game >= TouhouKeymap::TH07
+			&& game != TouhouKeymap::TH09 && game != TouhouKeymap::TH17 && game != TouhouKeymap::TH19)
 			key("Restart (when paused)", 'R', VK_END);
 		break;
 

@@ -14,6 +14,17 @@ static HRESULT(WINAPI *chain_GetDeviceState)(IDirectInputDevice8A*, DWORD, LPVOI
 static HRESULT(WINAPI *chain_SetDataFormat)(IDirectInputDevice8A*, LPCDIDATAFORMAT);
 
 // ----------------------------------------------------------------------------
+template <typename T>
+static void UpdateVTable(void *&vtEntry, T newFunc, T &oldFunc)
+{
+	if (vtEntry != newFunc)
+	{
+		oldFunc = (T)vtEntry;
+		vtEntry = newFunc;
+	}
+}
+
+// ----------------------------------------------------------------------------
 // Keyboard input hook (non-DirectInput version)
 static BOOL WINAPI GetKeyboardStateHook(PBYTE lpKeyState)
 {
@@ -116,11 +127,8 @@ static HRESULT WINAPI CreateDeviceHook(IDirectInput8A* self, REFGUID rguid, LPDI
 		DWORD oldProtect;
 		VirtualProtect(vtable + 9, 3 * sizeof(void*), PAGE_READWRITE, &oldProtect);
 
-		*(void**)&chain_GetDeviceState = vtable[9];
-		vtable[9] = GetDeviceStateHook;
-
-		*(void**)&chain_SetDataFormat = vtable[11];
-		vtable[11] = SetDataFormatHook;
+		UpdateVTable(vtable[9], GetDeviceStateHook, chain_GetDeviceState);
+		UpdateVTable(vtable[11], SetDataFormatHook, chain_SetDataFormat);
 
 		VirtualProtect(vtable + 9, 3 * sizeof(void*), oldProtect, &oldProtect);
 	}
@@ -140,8 +148,7 @@ static HRESULT WINAPI DirectInput8CreateHook(HINSTANCE hinst, DWORD dwVersion, R
 		DWORD oldProtect;
 		VirtualProtect(vtable + 3, sizeof(void*), PAGE_READWRITE, &oldProtect);
 
-		*(void**)&chain_CreateDevice = vtable[3];
-		vtable[3] = CreateDeviceHook;
+		UpdateVTable(vtable[3], CreateDeviceHook, chain_CreateDevice);
 		
 		VirtualProtect(vtable + 3, sizeof(void*), oldProtect, &oldProtect);
 	}

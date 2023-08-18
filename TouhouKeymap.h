@@ -32,6 +32,7 @@ namespace TouhouKeymap
 		TH17,
 		TH18,
 		TH185,
+		TH19,
 
 		Unknown,
 		Unsupported
