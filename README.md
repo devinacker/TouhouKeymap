@@ -16,7 +16,7 @@ Key settings are saved as `TouhouKeymap.ini` in each individual game's directory
 
 ### Currently not supported
 
-* 2P left/right controls for PoFV. If you're going to use these for a local multiplayer game, it's recommended to leave custom keys disabled for now.
+* 2P left/right controls for PoFV and UDoALG. If you're going to use these for a local multiplayer game, it's recommended to leave custom keys disabled for now.
 * All Twilight Frontier games. Most (all?) of them have key mapping built in anyway.
 
 ### Download
