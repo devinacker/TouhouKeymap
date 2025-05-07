@@ -11,6 +11,7 @@
 static auto chain_CreateDialogParamA = CreateDialogParamA;
 static auto chain_CreateDialogParamW = CreateDialogParamW;
 static auto chain_DialogBoxParamA = DialogBoxParamA;
+static auto chain_DefWindowProcW = DefWindowProcW;
 static DLGPROC chain_DialogProc;
 static WNDPROC chain_TextBoxWindowProc;
 
@@ -198,7 +199,7 @@ static INT_PTR CALLBACK ConfigDialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LP
 		clientRect.right = clientRect.left + controlRect.right;
 		clientRect.bottom = clientRect.top + controlRect.bottom;
 
-		AdjustWindowRect(&clientRect, wi.dwStyle, FALSE);
+		AdjustWindowRectEx(&clientRect, wi.dwStyle, FALSE, wi.dwExStyle);
 		MoveWindow(hwnd, clientRect.left, clientRect.top, 
 			clientRect.right - clientRect.left, clientRect.bottom - clientRect.top, TRUE);
 
@@ -246,29 +247,29 @@ static INT_PTR CALLBACK DialogProcHook(HWND hwnd, UINT uMsg, WPARAM wParam, LPAR
 
 	if (uMsg == WM_INITDIALOG)
 	{
+		WINDOWINFO wi;
+		wi.cbSize = sizeof(wi);
+		GetWindowInfo(hwnd, &wi);
+
 		// get (or create) menu
 		bool resizeForMenu = false;
 		HMENU menu = GetMenu(hwnd);
 		if (!menu)
 		{
 			menu = CreateMenu();
-			SetMenu(hwnd, menu);
 			resizeForMenu = true;
 		}
 
 		// add new item to menu
 		addedMenuItem = CreateMenu();
 		AppendMenuA(menu, MF_STRING, (UINT_PTR)addedMenuItem, "&Key Config...");
+		SetMenu(hwnd, menu);
 
 		if (resizeForMenu)
 		{
 			// resize the window to account for the menu
-			WINDOWINFO wi;
-			wi.cbSize = sizeof(wi);
-			GetWindowInfo(hwnd, &wi);
-
 			RECT area = wi.rcClient;
-			AdjustWindowRect(&area, wi.dwStyle, TRUE);
+			AdjustWindowRectEx(&area, wi.dwStyle, TRUE, wi.dwExStyle);
 			MoveWindow(hwnd, area.left, area.top,
 				area.right - area.left, area.bottom - area.top,
 				TRUE);
@@ -282,6 +283,18 @@ static INT_PTR CALLBACK DialogProcHook(HWND hwnd, UINT uMsg, WPARAM wParam, LPAR
 	}
 
 	return chain_DialogProc(hwnd, uMsg, wParam, lParam);
+}
+
+// ----------------------------------------------------------------------------
+static INT_PTR CALLBACK DefWindowProcHookW(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	// th20 is so far the only game that calls DefWindowProc at the end of its dialog proc
+	// (which the DLGPROC documentation explicitly says not to do...)
+	// this causes our menu hackery to break in new and annoying ways, so ignore it
+	if (GetClassLong(hwnd, GCW_ATOM) == 0x8002)
+		return 0;
+
+	return chain_DefWindowProcW(hwnd, uMsg, wParam, lParam);
 }
 
 // ----------------------------------------------------------------------------
@@ -312,5 +325,6 @@ void ConfigDialog::Init()
 		"CreateDialogParamA", CreateDialogParamHookA, &chain_CreateDialogParamA,
 		"CreateDialogParamW", CreateDialogParamHookW, &chain_CreateDialogParamW,
 		"DialogBoxParamA", DialogBoxParamHook, &chain_DialogBoxParamA,
+		"DefWindowProcW", DefWindowProcHookW, &chain_DefWindowProcW,
 		NULL);
 }
